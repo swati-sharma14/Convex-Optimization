@@ -1,0 +1,71 @@
+import numpy as np
+from scipy.optimize import minimize
+
+# Objective function
+def nash_welfare(u):
+    return -1*(np.log(u[0]-d[0]) + np.log(u[1]-d[1]))
+
+# Constraints
+def constraint1(u):
+    return 12 - u[0] - 2*u[1]
+
+def constraint2(u):
+    return 12 - 2*u[0] - u[1]
+
+# Feasible region
+d = np.array([2, 1])
+
+# INTERIOR POINT ALGORITHM
+# Barrier function
+def log_barrier(u):
+    return (-1.0)*(np.log(constraint1(u)) + np.log(constraint2(u)) + np.log(u[0]-d[0]) + np.log(u[1]-d[1]))
+
+def dual_problem(u,t):
+  return np.array((int(t))*[1/(u[0] - d[0]), 1/(u[1] - d[1]), 1/(12-u[0]-2*u[1]), 1/(12-u[1]-2*u[0])])
+
+# Define the barrier method
+# (t*f0(x)) + B(x)
+def barrier_method(u, t):
+    return (t*nash_welfare(u)) + log_barrier(u)
+
+# Initial values
+u0 = [d[0]*2, d[1]*2]
+
+# Barrier parameter
+eta = 1e-5
+t_init = 1.0
+t = t_init
+
+while(4/t>eta):
+    # Minimise the barrier function for the current value of t
+    u_new = minimize(barrier_method, u0, args=(t,), method='SLSQP', 
+               constraints=[{'type': 'ineq', 'fun': constraint1},
+                            {'type': 'ineq', 'fun': constraint2}]).x
+    t = t*(1 + 1/(13 * np.sqrt(0.01)))
+    if(np.linalg.norm(u_new - u0) <= eta):
+        break
+    u0 = u_new
+
+# Print the initial and final barrier parameters
+print(f"Initial barrier parameter: {t_init}")
+print(f"Final barrier parameter: {t}")
+
+# Print the Nash bargaining solution
+print(f"\nNash bargaining solution: {u0}")
+
+# Print the maximum value of the Nash welfare criterion at the Nash bargaining solution
+max_nash_welfare = -1*nash_welfare(u0)
+print(f"\nMaximum value of the Nash welfare criterion: {max_nash_welfare}")
+
+# Print the dual optimal variables for constraints
+print(f"\nDual optimal variables for constraints: ")
+print(f"Constraint 1: ",dual_problem(u0,t)[0])
+print(f"Constraint 2: ",dual_problem(u0,t)[1])
+print(f"Constraint 3: ",dual_problem(u0,t)[2])
+print(f"Constraint 4: ",dual_problem(u0,t)[3])
+
+# Print the inequality constraint function values at the optimum
+print(f"\nInequality constraint function 1 value at the optimum: {constraint1(u0)}")
+print(f"Inequality constraint function 2 value at the optimum: {constraint2(u0)}")
+print(f"Inequality constraint function 3 value at the optimum: ", u0[0]-d[0])
+print(f"Inequality constraint function 4 value at the optimum: ", u0[1]-d[1], "\n \n \n")
