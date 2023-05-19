@@ -1,0 +1,36 @@
+import cvxpy as cp
+import numpy as np
+import matplotlib.pyplot as plt
+
+d = np.array([3.5, 2])
+y = np.linspace(0, 1, 100)
+
+# Optimization variables
+u = cp.Variable(2)
+θ = cp.Parameter()
+
+# Constraints
+constraints = [u[0] + 2*u[1] <= 12, 2*u[0] + u[1] <= 12, u[0] >= d[0], u[1] >= d[1]]
+
+# Objective function
+obj = cp.Maximize(θ*u[0] + (1-θ)*u[1])
+
+# Store the optimal values of u1
+u1_values = []
+
+# Solve the optimization problem for each weight value
+for y_val in y:
+    θ.value = y_val
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    u1_values.append(u.value[0])
+    # Optimization problem was solved successfully
+    if prob.status != 'optimal':
+        print("Warning: Problem status is", prob.status, "for Y =", y_val)
+
+# Plot the graph of u1 vs. Y
+plt.plot(y, u1_values)
+plt.xlabel('Weight (Y)')
+plt.ylabel('Player 1 payoffs (u1)')
+plt.title('Weighted utilitarian bargaining')
+plt.show()
