@@ -1,0 +1,27 @@
+# Nash bargaining solution
+u1_values = []
+u2_values = []
+
+for d1 in np.linspace(2, 5, 100):
+    d[0] = d1
+    obj = cp.Maximize(cp.log(u[0] - d[0]) + cp.log(u[1] - d[1]))
+    
+    constraints = [u[0] + 2*u[1] <= 12,
+                   2*u[0] + u[1] <= 12,
+                   u[0] >= d[0],
+                   u[1] >= d[1]]
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    
+    if prob.status == 'optimal':
+        u1_values.append(u[0].value[0])
+        u2_values.append(u[1].value[0])
+
+fig, ax = plt.subplots()
+ax.plot(np.linspace(2, 5, len(u1_values)), u1_values, label="u1")
+ax.plot(np.linspace(2, 5, len(u2_values)), u2_values, label="u2")
+ax.set_xlabel("Disagreement payoff d1")
+ax.set_ylabel("Utility")
+ax.set_title("Nash Bargaining Solution")
+ax.legend()
+plt.show()
