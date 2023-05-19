@@ -1,0 +1,66 @@
+import numpy as np
+import math
+import numdifftools as nd
+
+# Defining the function
+def f(lst):
+    x = lst[0]
+    y = lst[1]
+    return 1 / (((2 * y) - x) * ((2 * x) - y) * (1 - x - y))
+
+# Defining gradient of the function at given point (lst)
+def grad(lst):
+    return nd.Gradient(f)(lst)
+
+# Defining the Hessian matrix of the given function at the given point (lst)
+def hess(lst):
+    return nd.Hessian(f)(lst)
+
+# Defining the combined descent algorithm
+def descent_me(f, df, x, y, n, a, b):
+    # copying the points to avoid mistakes
+    x0 = x   
+    y0 = y
+
+    # the required point 
+    yay = [x0, y0]
+
+    # solving the gradient of the function at the point yay
+    x_grad, y_grad = grad(yay)
+
+    # calculating || (grad(f(x))) ||
+    val = math.sqrt((x_grad)**2 + (y_grad)**2) 
+    h = hess(yay)
+    d = -val
+
+    while val > n:
+        if np.all(np.linalg.eigvals(h) > 0):  # Hessian matrix is positive definite
+            h_inv = np.linalg.inv(h)
+            d = -1 * np.dot(h_inv, np.array([x_grad, y_grad]))
+        else:
+            d = -1 * np.array([x_grad, y_grad])
+        
+        t = 1
+        while f([x + (t * d[0]), y + (t * d[1])]) > f(yay) + a * t * np.dot(grad(yay), d):  # Backtracking line search subroutine
+            t *= b
+
+        # Updating the values of x and y
+        x = x + t * d[0]
+        y = y + t * d[1]
+
+        h = hess([x, y])
+        val = np.linalg.det(h)
+
+        x_grad, y_grad = grad([x, y])
+        val = math.sqrt((x_grad)**2 + (y_grad)**2)
+
+        yay = [x, y]
+
+    return [x, y]
+
+point = [0.25, 0.25]
+
+# The initial point for the program is [0.25, 0.25]
+# Value of tolerance level n is taken as (10**(-7))
+# Value of alpha and beta are taken to be 0.5 and 0.5 respectively
+print(descent_me(f, grad, 0.25, 0.25, 10**-7, 0.5, 0.5))
