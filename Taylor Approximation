@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Function f(x)
+def f(x):
+    return x**2 + np.log(x)
+
+# Linear approximation function L(x)
+def l(x):
+    return 1 + x
+
+# Quadratic approximation function Q(x)
+def q(x):
+    return 1 + x + x**2/2
+
+# Error approximation in the interval [0, 2]
+def plot_el(x):
+    return (f(x) - l(x)) / (x - 1)
+
+def plot_eq(x):
+    return (f(x) - q(x)) / ((x - 1)**2)
+
+
+xaxis = np.arange(0.1, 2.0, 0.000001, dtype=float)
+plot_el_yaxis = []
+plot_eq_yaxis = []
+
+for n in xaxis:
+    plot_el_yaxis.append(plot_el(n))
+
+for n in xaxis:
+    plot_eq_yaxis.append(plot_eq(n))
+
+plt.ylabel('f(x)')
+plt.xlabel('x')
+
+plt.plot(xaxis, plot_el_yaxis, label='eL(x) = (f(x) - L(x))/(x - 1)')
+plt.plot(xaxis, plot_eq_yaxis, label='eQ(x) = (f(x) - Q(x))/((x - 1)^2)')
+
+plt.legend()
+plt.show()
